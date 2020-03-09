@@ -1,5 +1,5 @@
-var Channel_access_token = 'QimQsHHol8kE3jxZds4NkgDbaqI4frciop6sts0s1atl8YOT+xIELoFJ8q+VMZPIjc7tvo9/FPpLxrCjHDuog+1TFr4NP3r/B9G+js6Bp6WD6zWhVwCDx1PFMjuMAuZ9hL6aG8Uqr6s8pWefJQ6iDQdB04t89/1O/w1cDnyilFU=';
-var Sheet_Id = '1amor-fS4IzOG8pPwV5hrwNhdj647fZWu_uoaWMqDr6I';
+var Channel_access_token = 'e0JmImjIKom/m01+EDvnGRTcZQTnyXDdhO5K2Q7gMAQOLFOVNXgxkZGcNC6aasoi6xTnKB6HUA0uW5Ksa6lkzTbgfTASIC3aKaVNOlCBm0EW1CCB2OxZkDoppUN3FjCY4C4wCvxhjfbWE70BOvG0nAdB04t89/1O/w1cDnyilFU=';
+var Sheet_Id = '1jZyVcltcYD68rVJuDTSaC0G0wpRpLOgFO3vC66eSPRM';
 var Test_Sheet_Id = '1-GQ4KZjf1tcELwyGICq1lvOq0iW2jq_k4E69-N-hceY';
 var spreadsheet = SpreadsheetApp.openById(Sheet_Id);
 var sheet = spreadsheet.getSheets()[0];
@@ -32,8 +32,8 @@ function alarm(){
     };
     var push_url = 'https://api.line.me/v2/bot/message/push';
     var res = UrlFetchApp.fetch(push_url, post_options);
-    if(res)
-      sheet.getRange(2,5).setValue(res.getContentText());
+    /*if(res)
+      sheet.getRange(2,5).setValue(res.getContentText());*/
   }
 }
 
@@ -114,12 +114,12 @@ function Reply(Name,timestamp, userMessage){
       var all_daimoku_num = sheet.getRange(2,6).getValue();
       replytext = '大家已經共戰了 ' + all_daimoku_num + ' 分鐘囉\n我們一起前進吧！';
     }
-    else if(userMessage === "我唱了多少" || userMessage === "我唱多少了" ){
+    else if(userMessage === "我唱了多少" || userMessage === "我唱多少了"){
       var user_daimoku_num = find_daimoku_num(Name);
       if(user_daimoku_num == 0)
-        replytext = "尼根本還沒唱，快唱！";
+        replytext = "你還沒有題目數的資料喔，快一起回報吧！";
       else
-        replytext = '尼已經共戰了 ' + user_daimoku_num + ' 分鐘囉，繼續加油RRR';
+        replytext = '你已經共戰了 ' + user_daimoku_num + ' 分鐘囉，繼續加油RRR';
       }
     else if(msg[0] === 'Undo' || msg[0] === 'undo'){
       var lastRow = sheet.getLastRow();
@@ -130,7 +130,7 @@ function Reply(Name,timestamp, userMessage){
           complete = 1; 
         }
       }
-      replytext = '修正完成，下次確定再輸入可以ㄇ(怒';
+      replytext = '修正完成';
     }
     else if(userMessage === "目標"){
       replytext = res_sheet.getRange(5,10).getValue();
@@ -143,7 +143,7 @@ function Reply(Name,timestamp, userMessage){
       res_sheet.appendRow(newresContents);
       var reply_to_res = find_reply(userMessage);
       if(reply_to_res === 'empty')
-        replytext = res_sheet.getRange(2,11).getValue();//Name + 
+        replytext = Name + res_sheet.getRange(3,11).getValue();
       else
         replytext = reply_to_res;
     }
