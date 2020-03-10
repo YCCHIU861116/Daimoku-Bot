@@ -1,8 +1,9 @@
-var Channel_access_token = 'QimQsHHol8kE3jxZds4NkgDbaqI4frciop6sts0s1atl8YOT+xIELoFJ8q+VMZPIjc7tvo9/FPpLxrCjHDuog+1TFr4NP3r/B9G+js6Bp6WD6zWhVwCDx1PFMjuMAuZ9hL6aG8Uqr6s8pWefJQ6iDQdB04t89/1O/w1cDnyilFU=';
-var Sheet_Id = '1amor-fS4IzOG8pPwV5hrwNhdj647fZWu_uoaWMqDr6I';
+var Channel_access_token = 'zJAXdKw7A9ZvWJYfFzME4kEWO3lJ/VMco2vgQZVLD/WTmF8th+X51JonNFeXGScrdbFpz7C8F5V3EHjvhEd6KNPgP+5ssrgAygCjajK6msasukLXPdqo/b8zhfTzDITf8sleKtE1ERo3pWrs/5V5RgdB04t89/1O/w1cDnyilFU=';
+var Sheet_Id = '1nspvplAZLH3-JhwLNHyYFmEDi1mbi_eR5I8NP-DYVac';
 var Test_Sheet_Id = '1-GQ4KZjf1tcELwyGICq1lvOq0iW2jq_k4E69-N-hceY';
 var spreadsheet = SpreadsheetApp.openById(Sheet_Id);
 var sheet = spreadsheet.getSheets()[0];
+var reply_sheet = spreadsheet.getSheets()[1];
 var Response_Sheet_Id = '18DMAruCVS4HUe_YrcnPidPbMCMksqUJrV8DdaPzaIcQ';
 var res_spreadsheet = SpreadsheetApp.openById(Response_Sheet_Id);
 var res_sheet = res_spreadsheet.getSheets()[0];
@@ -13,7 +14,7 @@ function alarm(){
   for(i = 0; i < report_num; i++){
     var userId = sheet.getRange(i+7,6).getValue();
     var Name = sheet.getRange(i+7,7).getValue();
-    var pushtext = Name + res_sheet.getRange(9,10).getValue() +sheet.getRange(2,6).getValue()+res_sheet.getRange(9,11).getValue();
+    var pushtext = Name + reply_sheet.getRange(36,2).getValue() +sheet.getRange(2,6).getValue()+reply_sheet.getRange(36,3).getValue();
     var payload = {
       'to': userId,
       'messages':[{
@@ -32,8 +33,8 @@ function alarm(){
     };
     var push_url = 'https://api.line.me/v2/bot/message/push';
     var res = UrlFetchApp.fetch(push_url, post_options);
-    if(res)
-      sheet.getRange(2,5).setValue(res.getContentText());
+    /*if(res)
+      sheet.getRange(2,5).setValue(res.getContentText());*/
   }
 }
 
@@ -109,71 +110,72 @@ function Reply(Name,timestamp, userMessage){
     return "error";
   }
   var msg =  userMessage.split(' ');
-  if(isNaN(userMessage)){
-    if (userMessage === "大家唱了多少" || userMessage === "大家唱多少了"){
-      var all_daimoku_num = sheet.getRange(2,6).getValue();
-      replytext = '大家已經共戰了 ' + all_daimoku_num + ' 分鐘囉\n我們一起前進吧！';
-    }
-    else if(userMessage === "我唱了多少" || userMessage === "我唱多少了" ){
-      var user_daimoku_num = find_daimoku_num(Name);
-      if(user_daimoku_num == 0)
-        replytext = "尼根本還沒唱，快唱！";
-      else
-        replytext = '尼已經共戰了 ' + user_daimoku_num + ' 分鐘囉，繼續加油RRR';
-      }
-    else if(msg[0] === 'Undo' || msg[0] === 'undo'){
-      var lastRow = sheet.getLastRow();
-      var i,complete = 0;
-      for(i = lastRow; i > 0 && !complete; i--){
-        if(sheet.getRange(i,2).getValue() == Name){
-          sheet.getRange(i,3).setValue(msg[1]);
-          complete = 1; 
+  if(isNaN(msg[0])){
+    switch(msg[0]){
+      case reply_sheet.getRange(18,2).getValue(): case reply_sheet.getRange(18,3).getValue()://everyone
+        var all_daimoku_num = sheet.getRange(2,6).getValue();
+        replytext = reply_sheet.getRange(19,2).getValue() + all_daimoku_num + reply_sheet.getRange(19,3).getValue();
+        break;
+      case reply_sheet.getRange(20,2).getValue(): case reply_sheet.getRange(20,3).getValue()://myself
+        var user_daimoku_num = find_daimoku_num(Name);
+        if(user_daimoku_num == 0)
+          replytext = reply_sheet.getRange(21,2).getValue();
+        else
+          replytext = reply_sheet.getRange(22,2).getValue() + user_daimoku_num + reply_sheet.getRange(22,3).getValue();
+        break;
+      case reply_sheet.getRange(28,2).getValue(): case reply_sheet.getRange(28,3).getValue()://Undo
+        var lastRow = sheet.getLastRow();
+        var i,complete = 0;
+        for(i = lastRow; i > 0 && !complete; i--){
+          if(sheet.getRange(i,2).getValue() == Name){
+            sheet.getRange(i,3).setValue(msg[1]);
+            complete = 1; 
+          }
         }
-      }
-      replytext = '修正完成，下次確定再輸入可以ㄇ(怒';
-    }
-    else if(userMessage === "目標"){
-      replytext = res_sheet.getRange(5,10).getValue();
-    }
-    else if(userMessage === "help"){
-      replytext = res_sheet.getRange(7,10).getValue();
-    }
-    else{
-      var newresContents = [timestamp,Name,userMessage,1];
-      res_sheet.appendRow(newresContents);
-      var reply_to_res = find_reply(userMessage);
-      if(reply_to_res === 'empty')
-        replytext = res_sheet.getRange(2,11).getValue();//Name + 
-      else
-        replytext = reply_to_res;
+        replytext = reply_sheet.getRange(29,2).getValue();
+        break;
+      case reply_sheet.getRange(32,2).getValue()://祈求目標
+        replytext = reply_sheet.getRange(33,2).getValue();
+        break;
+      case reply_sheet.getRange(2,2).getValue()://使用說明
+        replytext = reply_sheet.getRange(3,2).getValue();
+        break;
+      default:
+        var newresContents = [timestamp,Name,userMessage,1];
+        res_sheet.appendRow(newresContents);
+        var reply_to_res = find_reply(userMessage);
+        if(reply_to_res === 'empty')
+          replytext = reply_sheet.getRange(2,4).getValue();//Name + 
+        else
+          replytext = reply_to_res;
     }
   }
   else{
     sheet.getRange(1, 3).setValue('題目數');
     var daimoku_num = parseInt(userMessage);
-    var newrowContents = [timestamp,Name,daimoku_num];
+    var newrowContents = [timestamp,Name,daimoku_num,"G","=TODAY()"];
     if(daimoku_num >=100000){
-      return res_sheet.getRange(2,9).getValue();
+      return reply_sheet.getRange(6,2).getValue();
     }
     else if(daimoku_num<0 || userMessage.indexOf(".")>-1){
-      return res_sheet.getRange(2,10).getValue();
+      return reply_sheet.getRange(7,2).getValue();
     }
     sheet.appendRow(newrowContents);
     if(daimoku_num >= 60){
-      replytext = Name + '!!!!!!!!\n';
+      replytext = Name + reply_sheet.getRange(8,2).getValue();
       if(daimoku_num == 60){
         replytext += '一小時';
       }
       else{
         replytext += (daimoku_num + '分鐘');
       }
-      replytext += ' 太神啦';
+      replytext += reply_sheet.getRange(8,3).getValue();
     }
     else{
-      replytext = 'hen 棒';
+      replytext = reply_sheet.getRange(9,2).getValue();
     }
     var user_daimoku_num = find_daimoku_num(Name);
-    replytext += '\n你現在已經和大家共戰了' + user_daimoku_num +' 分鐘囉！繼續加油~~~';
+    replytext += reply_sheet.getRange(12,2).getValue() + user_daimoku_num +reply_sheet.getRange(12,3).getValue();
   }
   return replytext;
 }
@@ -205,8 +207,8 @@ function FindNameinSheet(userId){
     return sheet.getRange(index+7,7).getValue();
   }
   else{
-    sheet.getRange(6, 6).setValue('error!!');
-    return "error";
+    //sheet.getRange(6, 6).setValue('error!!');
+    return "can not find";
   }
 }
 
@@ -248,7 +250,7 @@ function doPost(e){
     }
     else if(type === "follow"){
       var Name = FindNameinSheet(userId);
-      if(Name == 'error'){
+      if(Name == "can not find"){
         sheet.getRange(5, 6).setValue('個人資料庫');
         var report_num = sheet.getRange(2,7).getValue();
         var new_row = report_num + 7;
@@ -258,6 +260,24 @@ function doPost(e){
         sheet.getRange(new_row, 7).setValue(Name);
         sheet.getRange(new_row, 8).setValue("=sumif(B:B,\""+Name+"\",C:C)");
       }
+      var replytext = reply_sheet.getRange(3,2).getValue();
+      var payload = {
+        'replyToken': replyToken,
+        'messages':[{
+          'type': 'text',
+          'text': replytext
+        }]
+      };
+      var post_options = {
+        'headers': {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer '+ Channel_access_token
+        },
+        'method': 'post',
+        'payload': JSON.stringify(payload)
+      };
+      var reply_url = 'https://api.line.me/v2/bot/message/reply';
+      UrlFetchApp.fetch(reply_url, post_options);
     }
   }  
 }
